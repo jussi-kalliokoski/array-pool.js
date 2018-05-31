@@ -1,0 +1,4 @@
+/coverage
+/array-pool-*.tgz
+
+node_modules

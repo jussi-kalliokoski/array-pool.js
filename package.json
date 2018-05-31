@@ -1,0 +1,47 @@
+{
+  "name": "array-pool",
+  "version": "1.0.0",
+  "description": "Reduce garbage collection overhead by reusing array capacity",
+  "main": "ArrayPool.js",
+  "files": [
+    "ArrayPool.js"
+  ],
+  "scripts": {
+    "test": "jest && eslint *.js && flow check",
+    "prettier": "prettier --write *.js",
+    "coveralls": "cat ./coverage/lcov.info | COVERALLS_SERVICE_NAME=\"travis-ci\" coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jussi-kalliokoski/array-pool.js.git"
+  },
+  "keywords": [
+    "garbage",
+    "collection",
+    "gc",
+    "array",
+    "performance",
+    "optimization",
+    "reuse",
+    "allocation",
+    "pool"
+  ],
+  "author": "Jussi Kalliokoski <jussi.kalliokoski@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jussi-kalliokoski/array-pool.js/issues"
+  },
+  "homepage": "https://github.com/jussi-kalliokoski/array-pool.js#readme",
+  "jest": {
+    "collectCoverage": true
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "flow-bin": "^0.73.0",
+    "jest": "^23.1.0",
+    "prettier": "^1.13.3",
+    "progress": "^2.0.0"
+  }
+}

@@ -1,0 +1,94 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const {performance} = require("perf_hooks");
+const ProgressBar = require("progress");
+const ArrayPool = require('../ArrayPool.js');
+
+function sum(arr) {
+  return arr.reduce((l, r) => l + r, 0);
+}
+
+function bm(fn, iterations) {
+  console.log('running benchmark %s', fn.name);
+  const bar = process.argv.indexOf('--progress-bar') !== -1 ? new ProgressBar(":bar", iterations) : { tick(){} };
+  let times = new Float64Array(iterations);
+  for (let i = 0; i < iterations; i++) {
+    bar.tick();
+    const start = performance.now();
+    fn();
+    const end = performance.now();
+    times[i] = end - start;
+  }
+  times = times.sort((a, b) => a-b);
+  const min = times[0];
+  const median = times[Math.floor(times.length / 2)];
+  const average = sum(times) / times.length;
+  const max = times[times.length - 1];
+  console.log('%s median: %sms average: %sms min: %sms max: %sms', fn.name, median, average, min, max);
+}
+
+const values = [...new Array(500000)].map((_, x) => ({ x }));
+const filters = [2,3,5,7,11,13,17,19,23,29,31].map((_, x) => y => y.x % (x + 2) === 0);
+const map = new Map(values.map((v, i) => [i, v]));
+
+const arrayPool = new ArrayPool();
+
+function verifyFilter(result) {
+  if (sum(result.map(x => x.x)) !== 4740120) {
+    throw new Error("expected sum of results to be " + 235 + " got " + sum);
+  }
+}
+
+function verifyArrayFrom(result) {
+  if (result.length !== map.size) {
+    throw new Error("expected count of results to be " + map.size + " got " + result.length);
+  }
+}
+
+function filterPooled() {
+  let result = values;
+
+  for (let i = 0; i < filters.length; i++) {
+    let next = arrayPool.get();
+    for (let j = 0; j < result.length; j++) {
+        if (filters[i](result[j])) {
+            next.push(result[j]);
+        }
+    }
+    if (result !== values) arrayPool.release(result);
+    result = next;
+  }
+
+  verifyFilter(result);
+  arrayPool.release(result);
+}
+
+function filterNative() {
+  let result = values;
+
+  for (let i = 0; i < filters.length; i++) {
+    result = result.filter(filters[i]);
+  }
+
+  verifyFilter(result);
+}
+
+function arrayFromPooled() {
+  const result = arrayPool.get();
+  for (let item of map.values()) {
+    result.push(item);
+  }
+  verifyArrayFrom(result);
+  arrayPool.release(result);
+}
+
+function arrayFromNative() {
+  verifyArrayFrom(Array.from(map.values()));
+}
+
+bm(filterPooled, 10000);
+bm(filterNative, 10000);
+bm(arrayFromPooled, 10000);
+bm(arrayFromNative, 10000);
